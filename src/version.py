@@ -1,2 +1,4 @@
-__appname__ = "l50-edgehub-bridge"
+﻿__appname__ = "l50-edgehub-bridge"
 __version__ = "0.1.1"
+
+
