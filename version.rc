@@ -1,8 +1,7 @@
-# UTF-8 without BOM
 VSVersionInfo(
   ffi=FixedFileInfo(
-    filevers=(1,0,0,0),
-    prodvers=(1,0,0,0),
+    filevers=(0,1,1,0),
+    prodvers=(0,1,1,0),
     mask=0x3f,
     flags=0x0,
     OS=0x40004,
@@ -16,13 +15,13 @@ VSVersionInfo(
         '040904B0',
         [
           StringStruct('CompanyName', 'Advantech'),
-          StringStruct('FileDescription', 'LEO-L MQTT Bridge'),
-          StringStruct('FileVersion', '1.0.0'),
-          StringStruct('InternalName', 'l50-bridge'),
+          StringStruct('FileDescription', 'LEO-L EdgeHub Bridge'),
+          StringStruct('FileVersion', '0.1.1'),
+          StringStruct('InternalName', 'l50-edgehub-bridge'),
           StringStruct('LegalCopyright', '© 2025'),
-          StringStruct('OriginalFilename', 'l50-bridge.exe'),
-          StringStruct('ProductName', 'LEO-L MQTT Bridge'),
-          StringStruct('ProductVersion', '1.0.0')
+          StringStruct('OriginalFilename', 'l50-edgehub-bridge.exe'),
+          StringStruct('ProductName', 'LEO-L EdgeHub Bridge'),
+          StringStruct('ProductVersion', '0.1.1')
         ]
       )
     ]),
