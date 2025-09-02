@@ -1,0 +1,44 @@
+{
+  "brokers": {
+    "source": {
+      "host": "example.broker",
+      "port": 1883,
+      "username": "LEO",
+      "password": "passw0rd",
+      "client_id": "bridge-source",
+      "tls": false
+    },
+    "target": {
+      "host": "target.broker",
+      "port": 1883,
+      "tls": false
+    }
+  },
+  "subscriptions": [
+    {
+      "topic": "adv/+/data",
+      "qos": 1
+    }
+  ],
+  "routing": [
+    {
+      "from": "adv/{device}/data",
+      "to": "Advantech/{device}/data"
+    }
+  ],
+  "devices": [
+    {
+      "imei": "353500725105615",
+      "username": "353500725105615",
+      "password": "353500725105615",
+      "client_id": "353500725105615"
+    },
+    {
+      "imei": "353500725489142",
+      "username": "353500725489142",
+      "password": "353500725489142",
+      "client_id": "353500725489142"
+    }
+  ],
+  "skip_unknown": true
+}
