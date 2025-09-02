@@ -1,17 +1,17 @@
 $ErrorActionPreference = "Stop"
 
-# ===== 讀取版本與名稱 =====
+# ===== App name & version =====
 $APPNAME = "l50-edgehub-bridge"
 $APPVER  = (Get-Content -Raw -Encoding UTF8 -Path "VERSION").Trim()
 
 Write-Host "Building $APPNAME $APPVER (onefile)..." -ForegroundColor Cyan
 
-# 同步 src\version.py 的 __version__
+# Sync src\version.py
 (Get-Content -Raw -Encoding UTF8 "src/version.py") `
   -replace '__version__ = "[^"]+"', "__version__ = `"$APPVER`"" |
   Set-Content -Encoding UTF8 "src/version.py"
 
-# 同步 version.rc 的數字與字串版本
+# Sync version.rc numbers and strings
 $rc = Get-Content -Raw -Encoding UTF8 "version.rc"
 $nums = $APPVER.Split(".")
 $rc = $rc `
@@ -21,38 +21,72 @@ $rc = $rc `
   -replace "StringStruct\('ProductVersion',[^)]*\)", ("StringStruct('ProductVersion', '{0}')" -f $APPVER)
 Set-Content -Encoding UTF8 "version.rc" $rc
 
-# 清乾淨舊輸出
+# Stop any running old exe (avoid file lock)
+Write-Host "Stopping any running $APPNAME* processes..." -ForegroundColor Yellow
+Get-Process "$APPNAME*" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep -Milliseconds 300
+
+# Clean outputs
 if (Test-Path build) { Remove-Item -Recurse -Force build }
 if (Test-Path dist)  { Remove-Item -Recurse -Force dist  }
 
-# 確保 pyinstaller 可用
+# Ensure PyInstaller
 python -m pip show pyinstaller | Out-Null 2>$null
 if ($LASTEXITCODE -ne 0) {
   Write-Host "Installing pyinstaller..." -ForegroundColor Yellow
   python -m pip install pyinstaller
 }
 
-# ===== 打包：onefile =====
+# ===== Build onefile exe =====
 $exeName = "$APPNAME-$APPVER.exe"
 python -m PyInstaller --onefile --name "$APPNAME-$APPVER" --version-file=version.rc src/main.py
 
-# 建置結果移到帶版本資料夾，並複製 config.json
+# Arrange output folder and copy config.json
 $outDir = Join-Path "dist" "$APPNAME-$APPVER"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-
 Move-Item -Force (Join-Path "dist" $exeName) (Join-Path $outDir $exeName)
 
 if (Test-Path "config.json") {
   Copy-Item -Force "config.json" $outDir
 }
 
-# 產生 SHA256（可選）
+# Generate SHA256 (optional)
 Get-FileHash (Join-Path $outDir $exeName) -Algorithm SHA256 |
   Select-Object -ExpandProperty Hash |
   Out-File -Encoding ascii (Join-Path $outDir "$APPNAME-$APPVER.sha256")
+
+# ===== Release notes (EN) =====
+$notesFile = Join-Path $outDir "RELEASE-NOTES.txt"
+$now = Get-Date -Format "yyyy-MM-dd HH:mm"
+$entry = @"
+v$APPVER  ($now)
+- Added release notes feature
+- Build output packaged as ZIP
+
+"@
+
+if (Test-Path $notesFile) {
+  Add-Content -Encoding utf8 $notesFile $entry
+} else {
+  @"
+v0.0.1
+- Initial version
+
+v0.1.1
+- Packaged as single executable (onefile)
+
+$entry
+"@ | Out-File -Encoding utf8 $notesFile
+}
+
+# ===== Zip the whole release folder =====
+$zipPath = "dist\$APPNAME-$APPVER.zip"
+if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
+Compress-Archive -Path "$outDir\*" -DestinationPath $zipPath -Force
 
 Write-Host ""
 Write-Host "Build done:" -ForegroundColor Green
 Write-Host "  $outDir\$exeName"
 Write-Host "  $outDir\config.json"
-
+Write-Host "  $outDir\RELEASE-NOTES.txt"
+Write-Host "  $zipPath"
